@@ -11,7 +11,7 @@ from views.panel_usuarios import PanelUsuarios
 
 # Importación del backend para el Dashboard
 from logic.gestor_vehiculos import GestorVehiculos
-from logic.gestor_usuarios import GestorUsuarios
+from logic.gestor_usuarios import GestorUsuarios  # <-- IMPORTANTE: Para cambiar nombre
 import logic.catalogos as cat
 
 class VentanaPrincipal(QMainWindow):
@@ -115,6 +115,9 @@ class VentanaPrincipal(QMainWindow):
         self.btn_infracciones.clicked.connect(lambda: self.stacked_widget.setCurrentIndex(3))
         self.btn_reportes.clicked.connect(lambda: self.stacked_widget.setCurrentIndex(4))
         self.btn_usuarios.clicked.connect(lambda: self.stacked_widget.setCurrentIndex(5))
+        
+        # ===== LÍNEA IMPORTANTE AÑADIDA: Conectar el botón de cambiar nombre =====
+        self.btn_cambiar_nombre.clicked.connect(self.abrir_dialogo_cambio_nombre)
 
         self.btn_cerrar_sesion.clicked.connect(self.ejecutar_cierre_sesion)
         
@@ -145,7 +148,7 @@ class VentanaPrincipal(QMainWindow):
         self.stacked_widget.setCurrentIndex(0)
         self.actualizar_dashboard()
 
-    # ===== MÉTODO PARA CAMBIAR NOMBRE DE USUARIO =====
+    # ===== MÉTODO AÑADIDO PARA CAMBIAR NOMBRE DE USUARIO =====
     def abrir_dialogo_cambio_nombre(self):
         """Abre un diálogo para cambiar el nombre de usuario"""
         nuevo_nombre, ok = QInputDialog.getText(
@@ -154,6 +157,11 @@ class VentanaPrincipal(QMainWindow):
         )
         
         if ok and nuevo_nombre:
+            # Validar longitud mínima
+            if len(nuevo_nombre.strip()) < 4:
+                QMessageBox.warning(self, "Error", "El nombre de usuario debe tener al menos 4 caracteres.")
+                return
+                
             exito, mensaje = GestorUsuarios.cambiar_nombre_usuario(
                 self.usuario.id_usuario,
                 nuevo_nombre.strip(),
@@ -242,8 +250,6 @@ class VentanaPrincipal(QMainWindow):
         
         layout.addStretch()
 
-        layout.addWidget(btn_actualizar, alignment=Qt.AlignCenter)
-        
         # ==========================================
         # SECCIÓN DE BÚSQUEDA RÁPIDA
         # ==========================================
