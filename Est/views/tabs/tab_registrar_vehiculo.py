@@ -2,6 +2,7 @@ from PySide6.QtWidgets import (QWidget, QVBoxLayout, QLabel,
 QLineEdit, QPushButton, QComboBox, QFormLayout, 
 QMessageBox, QSpinBox)
 from PySide6.QtCore import Qt
+import re  # <-- AÑADIR ESTA IMPORTACIÓN
 
 # Importaciones del backend
 import logic.catalogos as cat
@@ -28,7 +29,7 @@ class TabRegistrarVehiculo(QWidget):
         self.input_placa.setPlaceholderText("Ej: YYU-021-A")
         
         self.input_id_propietario = QLineEdit()
-        self.input_id_propietario.setPlaceholderText("ID numérico del propietario")
+        self.input_id_propietario.setPlaceholderText("ID numérico del propietario (Ej: 3 o PRP-00003)")  # <-- MEJORADO
         
         self.input_anio = QSpinBox()
         self.input_anio.setRange(1899, 2030)
@@ -161,6 +162,17 @@ class TabRegistrarVehiculo(QWidget):
         procedencia = self.combo_procedencia.currentText()
         id_propietario_str = self.input_id_propietario.text().strip()
 
+        # ===== NUEVA VALIDACIÓN: Extraer solo el número del ID =====
+        # Si el usuario ingresó "PRP-00003", extraemos "00003"
+        if id_propietario_str.startswith("PRP-"):
+            id_propietario_str = id_propietario_str.replace("PRP-", "")
+        
+        # Eliminar ceros a la izquierda (opcional, pero útil)
+        # "00003" -> "3"
+        id_propietario_str = id_propietario_str.lstrip('0')
+        if id_propietario_str == "":
+            id_propietario_str = "0"
+
         # Validaciones
         if not vin or len(vin) != 17:
             QMessageBox.warning(self, "Error", "El VIN debe tener 17 caracteres")
@@ -201,7 +213,7 @@ class TabRegistrarVehiculo(QWidget):
         try:
             id_propietario = int(id_propietario_str)
         except ValueError:
-            QMessageBox.warning(self, "Error", "El ID del propietario debe ser un número")
+            QMessageBox.warning(self, "Error", "El ID del propietario debe ser un número (Ej: 3 o PRP-00003)")
             return
 
         # Validar que la clase sea válida para el modelo
